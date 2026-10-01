@@ -11,6 +11,7 @@ COPY_EXISTING ~CLABFI01.2DA~ ~OVERRIDE/CLABFI06.2DA~
 
 	LPF set_clab_2da_entries INT_VAR f_MinLevel = 1 STR_VAR f_Entry = AP_C0DWD00 END
 	LPF set_clab_2da_entries INT_VAR f_MinLevel = 1 STR_VAR f_Entry = GA_SPDWD02 END
+	LPF set_clab_2da_entries INT_VAR f_MinLevel = 1 f_MaxLevel = 1 STR_VAR f_Entry = GA_C0DWD03 END // SHIELD BASH
 	LPF set_clab_2da_entries INT_VAR f_MinLevel = 4 f_Increment = 4 STR_VAR f_Entry = GA_SPDWD02 END
 	LPF set_clab_2da_entries INT_VAR f_MinLevel = 5 f_MaxLevel = 20 f_Increment = 5 STR_VAR f_Entry = AP_SPDWD01 END
 	LPF set_clab_2da_entries INT_VAR f_MinLevel = 5 STR_VAR f_Entry = GA_C0DWD01 END
