@@ -1,0 +1,31 @@
+# Artisan's Kitpack — regression audit (2026-10-08)
+
+Scope: the `Sauler89/The-Artisan-s-Kitpack` fork, compared with known upstream issues and pull requests. This document deliberately distinguishes **a static code fix** from a **verified in-game fix**. No BGEE/BG2EE/EET installation or runtime test has been performed as part of this audit.
+
+| Report | Code-level assessment | Status in this audit |
+| --- | --- | --- |
+| Dark Moon Monk: Sorcerous Lineage level scaling | `lib/MonkRevision.tpa` copies wizard spells to `C0DM*.SPL`, changes their type to innate, and grants them through the Dark Moon kit table when EEex is installed. No safe caster-level correction has been established. | **Unresolved — runtime reproduction needed** ([upstream #57](https://github.com/TheArtisanBG/The-Artisan-s-Kitpack/issues/57)) |
+| Favored Soul: unable to use favored short swords | `lib/FavoredSoul.tpa` dynamically patches item usability with opcode 319 and independently grants chosen weapon proficiency. The issue may involve the interaction of the base shaman restrictions, item flags, opcode 319 and the chosen-weapon stat; blindly removing restrictions would enable unintended items. | **Unresolved — targeted item and save-game test needed** ([upstream #61](https://github.com/TheArtisanBG/The-Artisan-s-Kitpack/issues/61)) |
+| Shapeshifter: Wolf Shape strength/dexterity references | `lib/Shapeshifter.tpa` now patches installed `C0SS-W.ITM` effect resources `C0SS-FS` → `C0SS-WS` and `C0SS-FD` → `C0SS-WD`. Source assets are not altered. | **Static fix committed; WeiDU / in-game validation pending** ([upstream PR #25](https://github.com/TheArtisanBG/The-Artisan-s-Kitpack/pull/25)) |
+| Trickster: Mimicry compatibility / possible ability overflow | `lib/trickster-mods.tpa` includes extensive conditional cross-mod abilities. PR #20 proposes removing some additions, which is a feature tradeoff rather than a proof that all crash conditions are fixed. | **Unresolved — reproduce with exact mod order and affected abilities** ([upstream PR #20](https://github.com/TheArtisanBG/The-Artisan-s-Kitpack/pull/20)) |
+| Dwarven Defender + Vanguard: Shield Bash icon not visible | `lib/dwarvendefender.tpa` grants `GA_C0DWD03` at level 1 and prepares portrait status art. A grant in CLAB alone does not prove the action bar shows the icon. Standalone Vanguard uses `CLABFI06.2da` through a separate path. | **Unresolved — test both installer components and action bar** |
+| Martyr installed after Sirene NPC: kit missing in Paladin selection | `lib/Martyr.tpa` calls `ADD_KIT_EX` with `kit_class = 6`. Whether it appears after Sirene depends on generated KITLIST/K_P_* tables, installation order and UI limits; no safe change is evident without the two mods' installed tables. | **Unresolved — integration reproduction needed** |
+| Paladin: Divine Grace bonus disappears after Aura of Courage expires | `lib/Paladin.tpa` installs Paladin aura resources. Needs inspection of the installed SPL/EFF effect lifecycle and saved creature effects, not just string edits. | **Unresolved — needs save-game and Near Infinity comparison** |
+| Eldritch Knight: weapons become unusable for the kit or others | `lib/Eldritch_Knight.tpa` loops over all ITM resources and alters equipped effects for armor casting; weapon restrictions require a separate reproduction trace. Earlier report #65 was closed after the reporter reloaded. | **Unresolved as a general regression — do not assume all reports describe the same bug** |
+| Ninja: Smoke Bomb missing in BG2EE | The packaged `MonkRevision/Ninja/2da/C0NINJA.2DA` already grants `GA_C0NINJ1` at level 1, with later grants. This rules out a trivially absent CLAB entry but not a kit/UI/EEex problem. | **Not reproduced from the CLAB; runtime test pending** |
+| Enlightened Fist: d4 instead of intended d6 | `lib/EnlightenedFist.tpa` had an inactive (`//` commented) `hpclass = ~HPROG~` entry. The override has been enabled for d6 progression. | **Static fix committed; level-up and character-generation validation pending** |
+| Shapeshifter: Shared Gift cannot be reverted | `Shared Gift` is defined in `lib/Shapeshifter.tpa` and its associated spells. The reported transformation lock is not sufficiently characterized to safely alter a binary SPL without reproducing it. | **Unresolved — runtime reproduction needed** |
+| Shapeshifter: deselection / XP while wolf transformed | Historical reports suggest a temporary opcode 365 deselection effect and a temporary XP modifier in the wolf paw ITM. Temporary behavior does not by itself prove XP loss. | **Unverified — compare XP before and after a controlled transform encounter** |
+
+## Minimum verification matrix
+
+1. **BG2EE + EEex only**: install each affected component separately, create level 1, 5, 9, 13 and Throne of Bhaal test characters, confirm progression and usability.
+2. **EET + EEex only**: repeat at representative levels and check whether source game / character creation campaign changes the results.
+3. **Standalone Vanguard versus Dwarven Defender overhaul + Vanguard**: check Shield Bash icon visibility, modal state, attacks and CLAB at character creation and after level-up.
+4. **Sirene NPC → Martyr and Martyr → Sirene NPC**: compare KITLIST.2DA, KITTABLE.2DA and relevant K_P_*.2DA files, then test the class selection UI.
+5. **Favored Soul**: select short swords, test base and enchanted short swords in ToB, compare a non-favored weapon and inspect the item's equipped opcode 319 effects.
+6. **Shapeshifter**: use wolf/greater werewolf and Shared Gift on multiple targets, save and reload during transformations, validate revert and XP accounting.
+7. **Dark Moon Monk**: compare Magic Missile projectile count and Mirror Image image count between monk levels against equivalent mage casts.
+8. **Trickster**: record the exact WeiDU.log and test each conditional Mimicry integration separately before removing an ability family.
+
+A **static fix committed** does not mean “fully fixed” until installation and gameplay regression tests pass.
