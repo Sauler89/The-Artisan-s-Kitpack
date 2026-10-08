@@ -231,7 +231,7 @@ COPY_EXISTING_REGEXP GLOB ~.*\.itm~ ~override~ //copies all item files
       READ_BYTE    0x20 row3
       READ_BYTE    0x21 row4
       READ_SHORT    0x1C type //reads the byte containing item type
-      READ_SHORT    0x31 proficiency 
+      READ_BYTE     0x31 proficiency // 0x32 is minimum Charisma, not part of proficiency
       PATCH_IF (proficiency = 89) AND (((row1 BAND 0b01000000) = 0b00000000) AND ((row2 BAND 0b00001000) = 0b00000000) AND ((row3 BAND 0b00110000) = 0b00000000) AND ((row4 BAND 0b00000000) = 0b00000000) AND !(((row1 BAND 0b11000000) = 0b00000000) AND ((row2 BAND 0b11111111) = 0b00000000) AND ((row3 BAND 0b01111111) = 0b00000000) AND ((row4 BAND 0b01100000) = 0b00000000))
                                       ) BEGIN // bastard sword
         WRITE_BYTE    0x1E (row1 BAND 0b00111111) 

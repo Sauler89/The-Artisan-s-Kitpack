@@ -2,12 +2,8 @@
 COPY ~%MOD_FOLDER%/Druid/Shapeshifter/2DAs~ ~OVERRIDE~
 COPY ~%MOD_FOLDER%/Druid/Shapeshifter/SPELLS~ ~OVERRIDE~
 
-// Wolf Shape must use the wolf-specific Strength and Dexterity effects.
-// The shipped item mistakenly references the werewolf effects (see upstream PR #25).
-COPY_EXISTING ~C0SS-W.ITM~ ~OVERRIDE~
-  LPF ALTER_EFFECT STR_VAR match_resource = ~C0SS-FS~ resource = ~C0SS-WS~ END
-  LPF ALTER_EFFECT STR_VAR match_resource = ~C0SS-FD~ resource = ~C0SS-WD~ END
-BUT_ONLY_IF_IT_CHANGES
+// C0SS-W.ITM already references C0SS-WS/C0SS-WD in this baseline.
+// Keep the binary regression check: upstream PR #25 is historical here.
 
 COPY_EXISTING ~CLABDR01.2DA~ ~OVERRIDE/CLABDR03.2DA~
   REPLACE_TEXTUALLY ~GA_SPCL107~ ~**** ~

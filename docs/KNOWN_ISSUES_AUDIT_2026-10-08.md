@@ -1,31 +1,42 @@
 # Artisan's Kitpack — regression audit (2026-10-08)
 
-Scope: the `Sauler89/The-Artisan-s-Kitpack` fork, compared with known upstream issues and pull requests. This document deliberately distinguishes **a static code fix** from a **verified in-game fix**. No BGEE/BG2EE/EET installation or runtime test has been performed as part of this audit.
+Scope: `Sauler89/The-Artisan-s-Kitpack`, draft PR #1. Installation-time fixes and resource inspection are distinct from gameplay verification. No BGEE/BG2EE/EET engine or EEex runtime was available during this audit.
 
-| Report | Code-level assessment | Status in this audit |
+## Findings and changes
+
+| Report | Evidence and action | Remaining verification |
 | --- | --- | --- |
-| Dark Moon Monk: Sorcerous Lineage level scaling | `lib/MonkRevision.tpa` copies wizard spells to `C0DM*.SPL`, changes their type to innate, and grants them through the Dark Moon kit table when EEex is installed. No safe caster-level correction has been established. | **Unresolved — runtime reproduction needed** ([upstream #57](https://github.com/TheArtisanBG/The-Artisan-s-Kitpack/issues/57)) |
-| Favored Soul: unable to use favored short swords | `lib/FavoredSoul.tpa` dynamically patches item usability with opcode 319 and independently grants chosen weapon proficiency. The issue may involve the interaction of the base shaman restrictions, item flags, opcode 319 and the chosen-weapon stat; blindly removing restrictions would enable unintended items. | **Unresolved — targeted item and save-game test needed** ([upstream #61](https://github.com/TheArtisanBG/The-Artisan-s-Kitpack/issues/61)) |
-| Shapeshifter: Wolf Shape strength/dexterity references | `lib/Shapeshifter.tpa` now patches installed `C0SS-W.ITM` effect resources `C0SS-FS` → `C0SS-WS` and `C0SS-FD` → `C0SS-WD`. Source assets are not altered. | **Static fix committed; WeiDU / in-game validation pending** ([upstream PR #25](https://github.com/TheArtisanBG/The-Artisan-s-Kitpack/pull/25)) |
-| Trickster: Mimicry compatibility / possible ability overflow | `lib/trickster-mods.tpa` includes extensive conditional cross-mod abilities. PR #20 proposes removing some additions, which is a feature tradeoff rather than a proof that all crash conditions are fixed. | **Unresolved — reproduce with exact mod order and affected abilities** ([upstream PR #20](https://github.com/TheArtisanBG/The-Artisan-s-Kitpack/pull/20)) |
-| Dwarven Defender + Vanguard: Shield Bash icon not visible | `lib/dwarvendefender.tpa` grants `GA_C0DWD03` at level 1 and prepares portrait status art. A grant in CLAB alone does not prove the action bar shows the icon. Standalone Vanguard uses `CLABFI06.2da` through a separate path. | **Unresolved — test both installer components and action bar** |
-| Martyr installed after Sirene NPC: kit missing in Paladin selection | `lib/Martyr.tpa` calls `ADD_KIT_EX` with `kit_class = 6`. Whether it appears after Sirene depends on generated KITLIST/K_P_* tables, installation order and UI limits; no safe change is evident without the two mods' installed tables. | **Unresolved — integration reproduction needed** |
-| Paladin: Divine Grace bonus disappears after Aura of Courage expires | `lib/Paladin.tpa` installs Paladin aura resources. Needs inspection of the installed SPL/EFF effect lifecycle and saved creature effects, not just string edits. | **Unresolved — needs save-game and Near Infinity comparison** |
-| Eldritch Knight: weapons become unusable for the kit or others | `lib/Eldritch_Knight.tpa` loops over all ITM resources and alters equipped effects for armor casting; weapon restrictions require a separate reproduction trace. Earlier report #65 was closed after the reporter reloaded. | **Unresolved as a general regression — do not assume all reports describe the same bug** |
-| Ninja: Smoke Bomb missing in BG2EE | The packaged `MonkRevision/Ninja/2da/C0NINJA.2DA` already grants `GA_C0NINJ1` at level 1, with later grants. This rules out a trivially absent CLAB entry but not a kit/UI/EEex problem. | **Not reproduced from the CLAB; runtime test pending** |
-| Enlightened Fist: d4 instead of intended d6 | `lib/EnlightenedFist.tpa` had an inactive (`//` commented) `hpclass = ~HPROG~` entry. The override has been enabled for d6 progression. | **Static fix committed; level-up and character-generation validation pending** |
-| Shapeshifter: Shared Gift cannot be reverted | `Shared Gift` is defined in `lib/Shapeshifter.tpa` and its associated spells. The reported transformation lock is not sufficiently characterized to safely alter a binary SPL without reproducing it. | **Unresolved — runtime reproduction needed** |
-| Shapeshifter: deselection / XP while wolf transformed | Historical reports suggest a temporary opcode 365 deselection effect and a temporary XP modifier in the wolf paw ITM. Temporary behavior does not by itself prove XP loss. | **Unverified — compare XP before and after a controlled transform encounter** |
+| Dark Moon Monk: Sorcerous Lineage scaling ([#57](https://github.com/TheArtisanBG/The-Artisan-s-Kitpack/issues/57)) | The **non-EEex** selector referenced original wizard spells, giving a monk wizard caster-level behavior. `dark_moon_lineage.tpa` now creates private innate `C0DL###` copies and remaps the five selectors, preserving installed effects and level headers. Original wizard spells are untouched. The separate EEex implementation is unchanged. | Compare Magic Missile and Mirror Image at monk levels 1/5/9/13 without EEex. Modded nested cast subspells are not recursively converted and need separate compatibility tests. |
+| Favored Soul: favored short swords unusable in ToB ([#61](https://github.com/TheArtisanBG/The-Artisan-s-Kitpack/issues/61)) | Both proficiency passes read ITM offset `0x31` as a short, incorrectly including minimum Charisma at `0x32`. Changed both to `READ_BYTE`. This fixes incorrect proficiency matching on items with a nonzero minimum Charisma byte. | **The specific ToB report remains open:** this defect does not explain an item whose minimum Charisma is zero. Need the failing item resources, save and mod order; do not remove general item restrictions. |
+| Shapeshifter: Wolf Shape STR/DEX references ([PR #25](https://github.com/TheArtisanBG/The-Artisan-s-Kitpack/pull/25)) | Packaged `C0SS-W.ITM` already references `C0SS-WS` and `C0SS-WD` in opcode 177 effects. Removed the previous no-op patch (also overwritten by a subsequent copy). Replaced its misleading source test with binary resource assertions. | No new fix needed for the shipped references. Inspect final installed ITM/EFF if stats still fail. |
+| Trickster: Mimicry compatibility/crashes ([PR #20](https://github.com/TheArtisanBG/The-Artisan-s-Kitpack/pull/20)) | Nine base selectors contain 30 entries each; conditional additions alone do not prove an overflow. PR #20 replaces curated integration with automatic CLAB ability discovery, rather than merely removing some additions. No speculative feature removal. | Exact crashing ability, WeiDU.log, installed selector tables and repeatable save. |
+| Dwarven Defender + revised Vanguard: hidden Shield Bash | `C0DWD03.SPL` is an innate with **spell level 0**. The installer now sets level 1, matching innate memorization and the optional EEex modal menu's search range. Both revised kits share this resource. | Fresh characters and level-ups, with/without the optional modal menu. Standalone vanilla Vanguard does not advertise/grant Shield Bash; this patch does not add that feature. |
+| Martyr missing after Sirene | `ADD_KIT_EX` skips an already registered `C0ILM`, including chargen registration. New helper reuses its existing numeric KITLIST ID and ensures one entry in existing paladin selection tables. It leaves other classes and kit IDs intact and does not create absent race tables. | Test Sirene → Martyr and reverse order using the user's actual versions and selection UI. Current Sirene source confirms shared registration, but does not by itself reproduce every reported disappearance. |
+| Paladin: Divine Grace lost when Aura of Courage expires | Grace's `C0PAL03*` spells and Courage's `C0PAL04*` spells remove their own respective families. Inspection did not demonstrate cross-removal. No speculative opcode replacement. | Save before/after expiration, final SPL resources and active creature effects. |
+| Eldritch Knight: restrictions affect other items | Fixed Boolean grouping in the armor pass: item type must be armor for **both** chain and plate appearance checks. Previously the plate appearance bypassed the type condition. | This is a concrete scope bug, **not proof of resolution of the reported weapon restrictions**. Compare final affected ITM on EK and an unrelated class. |
+| Ninja: Smoke Bomb missing at BG2 chargen | Packaged CLAB grants it at level 1. `C0NINJ1.SPL` already has innate type, level 1, a level-1 ability header at location 4 and an existing icon. No missing grant/resource found. | New BG2 character save, installed CLAB/SPL, EEex and UI versions. |
+| Enlightened Fist: d4 instead of d6 | Earlier commit enabled the commented `hpclass = ~HPROG~` entry. Retained. | Verify chargen and level-up HP with controlled Constitution and difficulty settings. |
+| Shared Gift: cannot revert | Transformation includes the `C0SS-WN` revert grant; that resource exists as a level-1 innate and contains revert/removal effects. No simple missing-revert-resource defect demonstrated. | Affected recipient save, form used, steps, installed transformation resources. |
+| Shapeshifter: deselection/XP while wolf transformed | Wolf item contains a short opcode 365 effect and equipped class/XP changes. Temporary zero XP while transformed is not sufficient evidence of permanent loss. | Record XP before transform, during kill/quest rewards, after revert and after reload. No speculative deletion of class/form effects. |
 
-## Minimum verification matrix
+## Automated verification
 
-1. **BG2EE + EEex only**: install each affected component separately, create level 1, 5, 9, 13 and Throne of Bhaal test characters, confirm progression and usability.
-2. **EET + EEex only**: repeat at representative levels and check whether source game / character creation campaign changes the results.
-3. **Standalone Vanguard versus Dwarven Defender overhaul + Vanguard**: check Shield Bash icon visibility, modal state, attacks and CLAB at character creation and after level-up.
-4. **Sirene NPC → Martyr and Martyr → Sirene NPC**: compare KITLIST.2DA, KITTABLE.2DA and relevant K_P_*.2DA files, then test the class selection UI.
-5. **Favored Soul**: select short swords, test base and enchanted short swords in ToB, compare a non-favored weapon and inspect the item's equipped opcode 319 effects.
-6. **Shapeshifter**: use wolf/greater werewolf and Shared Gift on multiple targets, save and reload during transformations, validate revert and XP accounting.
-7. **Dark Moon Monk**: compare Magic Missile projectile count and Mirror Image image count between monk levels against equivalent mage casts.
-8. **Trickster**: record the exact WeiDU.log and test each conditional Mimicry integration separately before removing an ability family.
+Run locally:
 
-A **static fix committed** does not mean “fully fixed” until installation and gameplay regression tests pass.
+```sh
+python3 -m unittest discover -s tests -v
+python3 tests/run_weidu_regressions.py /absolute/path/to/weidu
+```
+
+The four source/binary checks cover the d6 declaration, real wolf EFF references, Ninja's shipped grant/header/icon, and Shield Bash's grant. The GitHub Actions workflow also downloads official WeiDU 251 with a pinned SHA-256, parses changed TPA files and executes production patches in a synthetic empty game directory. No copyrighted game files are needed.
+
+The synthetic fixture checks that the five Dark Moon selectors are remapped while original spells and copied effect/header payloads remain intact; repeated helper execution is idempotent; Martyr uses a stored kit ID different from its physical row number, avoids duplicate entries and preserves unrelated tables; Shield Bash becomes level 1; and proficiency reads exclude minimum Charisma. These checks **do not simulate the game engine or a complete mod installation**.
+
+## Files needed for unresolved runtime reports
+
+- `WeiDU.log`, `SETUP-ARTISANSKITPACK.DEBUG`, and the tweaks DEBUG if those components are installed.
+- A ZIP of the complete affected save folder, with game/campaign version, exact steps and expected/observed behavior.
+- For Martyr: installed `KITLIST.2DA`, `KITTABLE.2DA` and `K_P_*.2DA` exported from the affected installation.
+- For item restrictions: exact failing item name/resource and final installed `.ITM`; for spell issues, final relevant `.SPL`/`.EFF` files. Near Infinity can export resources that are not present in override.
+
+Do not install this draft over the only copy of a working modded game. Validate on a separate installation with the same order before promoting the draft.
