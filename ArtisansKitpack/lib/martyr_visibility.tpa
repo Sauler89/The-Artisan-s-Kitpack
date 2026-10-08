@@ -1,0 +1,50 @@
+// Sirene can register C0ILM before this component. ADD_KIT_EX deliberately
+// skips existing kits, including their chargen tables. Reuse the existing ID;
+// never register a second Martyr or change Sirene's creature kit assignment.
+LAF a7#add_kit_ex#get_row
+  INT_VAR column = 1
+  STR_VAR resref = ~kitlist~ row_name = ~C0ILM~
+  RET row c0_martyr_row = row_index
+END
+ACTION_IF (c0_martyr_row >= 0) BEGIN
+  // Use the value stored in KITLIST, not its physical line number.
+  LAF a7#add_kit_ex#split
+    STR_VAR string = EVAL ~%row%~
+    RET_ARRAY c0_martyr_fields = items
+  END
+  OUTER_SPRINT c0_martyr_id $c0_martyr_fields(~0~)
+
+  LAF a7#add_kit_ex#get_row
+    STR_VAR resref = ~kittable~ row_name = ~PALADIN~
+    RET c0_paladin_tables = row c0_paladin_row = row_index
+  END
+  ACTION_IF (c0_paladin_row >= 0) BEGIN
+    LAF a7#add_kit_ex#split
+      STR_VAR string = EVAL ~%c0_paladin_tables%~
+      RET c0_table_count = items RET_ARRAY c0_tables = items
+    END
+    ACTION_PHP_EACH c0_tables AS c0_index => c0_table BEGIN
+      ACTION_IF (c0_index > 0) AND FILE_EXISTS_IN_GAME ~%c0_table%.2da~ BEGIN
+        COPY_EXISTING ~%c0_table%.2da~ ~override~
+          COUNT_2DA_ROWS 2 c0_rows
+          SET c0_found = 0
+          SET c0_last_label = 0
+          FOR (c0_row = 0; c0_row < c0_rows; ++c0_row) BEGIN
+            READ_2DA_ENTRY c0_row 0 2 c0_label
+            READ_2DA_ENTRY c0_row 1 2 c0_entry
+            PATCH_IF (IS_AN_INT ~%c0_label%~) BEGIN
+              SET c0_last_label = (c0_label > c0_last_label) ? c0_label : c0_last_label
+            END
+            PATCH_IF (~%c0_entry%~ STRING_EQUAL_CASE ~%c0_martyr_id%~) BEGIN
+              SET c0_found = 1
+            END
+          END
+          PATCH_IF (NOT c0_found) BEGIN
+            SET c0_last_label += 1
+            INSERT_2DA_ROW c0_rows 2 ~%c0_last_label% %c0_martyr_id%~
+          END
+        BUT_ONLY
+      END
+    END
+  END
+END

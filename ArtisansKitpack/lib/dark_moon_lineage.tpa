@@ -1,0 +1,25 @@
+// The non-EEex selector used the original wizard SPLs. A monk has no wizard
+// caster level, so their level-dependent headers (e.g. Magic Missile) stayed
+// at the first tier. Give this selector private innate copies instead.
+// Keep the game's installed effects/headers; never change the wizard originals.
+ACTION_FOR_EACH c0_lineage_table IN C0DMM01A C0DMM01B C0DMM01C C0DMM01D C0DMM01E BEGIN
+  COPY_EXISTING ~%c0_lineage_table%.2da~ ~override~
+    COUNT_2DA_ROWS 3 c0_lineage_rows
+    FOR (c0_lineage_row = 0; c0_lineage_row < c0_lineage_rows; ++c0_lineage_row) BEGIN
+      READ_2DA_ENTRY c0_lineage_row 1 3 c0_lineage_source
+      PATCH_IF (~%c0_lineage_source%~ STRING_MATCHES_REGEXP ~^SPWI[0-9][0-9][0-9]$~ = 0) BEGIN
+        INNER_PATCH_SAVE c0_lineage_copy ~%c0_lineage_source%~ BEGIN
+          REPLACE_TEXTUALLY CASE_INSENSITIVE ~^SPWI~ ~C0DL~
+        END
+        PATCH_IF FILE_EXISTS_IN_GAME ~%c0_lineage_source%.spl~ BEGIN
+          INNER_ACTION BEGIN
+            COPY_EXISTING ~%c0_lineage_source%.spl~ ~override/%c0_lineage_copy%.spl~
+              WRITE_SHORT 0x1c 4 // innate: use the monk's level
+              WRITE_LONG 0x34 1  // valid innate memorization level
+          END
+          SET_2DA_ENTRY c0_lineage_row 1 3 ~%c0_lineage_copy%~
+        END
+      END
+    END
+  BUT_ONLY
+END

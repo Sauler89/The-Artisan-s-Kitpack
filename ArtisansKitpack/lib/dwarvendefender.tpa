@@ -118,6 +118,9 @@ DEFENSIVE STANCE: The user assumes a defensive position, prepared to endure all 
   18th level: Armor Class and Saving Throw bonus increased to +6. Damage Resistance increased to 50%.~
 
 COPY_EXISTING ~C0DWD03.SPL~ OVERRIDE
+// A granted innate must occupy a valid memorization level. The source is level 0.
+// Both the revised Dwarven Defender and its Vanguard kit share this resource.
+WRITE_LONG 0x34 1
 SAY NAME1 ~Shield Bash~
 SAY UNIDENTIFIED_DESC ~Shield Bash
 The user slams their shield into the target for their first melee attack on each target to unbalance and daze them, dealing 1d10 bonus crushing damage and reducing the target's Armor Class by 2 points and temporarily rendering them unable to take actions for one round on a failed Save vs. Breath Weapons (-1 to modifier per 5 levels). The user may only attempt a Shield Bash on a single target once per two rounds.
