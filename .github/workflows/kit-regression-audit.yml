@@ -27,7 +27,8 @@ jobs:
         shell: bash
         run: |
           for source in ArtisansKitpack/lib/{EnlightenedFist,Shapeshifter,dwarvendefender,Martyr,martyr_visibility,MonkRevision,dark_moon_lineage,Eldritch_Knight,profs_eeex_patch}.tpa ArtisansKitpack/eeex/profs_eeex.tpa; do
-            "$WEIDU_BIN" --noautoupdate --parse-check TPA "$source"
+            "$WEIDU_BIN" --nogame --noautoupdate --parse-check TPA "$source" 2>&1 | tee "$RUNNER_TEMP/parse-check.log"
+            grep -F "File [$source] was successfully parsed as type [TPA]" "$RUNNER_TEMP/parse-check.log"
           done
       - name: Execute patches on synthetic resources
         run: python3 tests/run_weidu_regressions.py "$WEIDU_BIN"
