@@ -322,3 +322,9 @@ COPY_EXISTING ~C0INVBL.2DA~ OVERRIDE
 END
 
 END
+
+// Skitia NPCs EET compilation: assign the newly registered kit to Isaac.
+// The marker is installed only by the compilation's BG1 component.
+ACTION_IF (FILE_EXISTS_IN_GAME ~SNIBREQ.2da~ AND FILE_EXISTS ~SkitiaNPCs/Lib/Artisan_Isaac.tpa~) THEN BEGIN
+  INCLUDE ~SkitiaNPCs/Lib/Artisan_Isaac.tpa~
+END
