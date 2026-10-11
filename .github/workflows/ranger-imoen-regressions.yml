@@ -34,3 +34,5 @@ jobs:
         run: python3 tests/ranger_imoen_regressions.py "$WEIDU_BIN"
       - name: Execute Stalker and NPC field regression fixtures
         run: python3 tests/stalker_npc_regressions.py "$WEIDU_BIN"
+      - name: Execute Nalia and Xan regression fixtures
+        run: python3 tests/nalia_xan_regressions.py "$WEIDU_BIN"

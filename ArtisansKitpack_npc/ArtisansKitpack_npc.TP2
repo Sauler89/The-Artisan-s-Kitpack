@@ -1121,6 +1121,9 @@ ACTION_IF FILE_EXISTS_IN_GAME ~O#XAN09.cre~ THEN BEGIN
 		  WRITE_SHORT 0x246 (IDS_OF_SYMBOL (~kit~ ~C0EK~))
       END
       BUT_ONLY
+END
+
+ACTION_IF FILE_EXISTS_IN_GAME ~O#XAN25.cre~ THEN BEGIN
         COPY_EXISTING ~O#XAN25.cre~ ~override~
       READ_BYTE 0x273 class
       PATCH_IF (class = 7) BEGIN
@@ -1179,20 +1182,28 @@ ACTION_IF FILE_EXISTS_IN_GAME ~nalia8.cre~ THEN BEGIN
     ADD_MEMORIZED_SPELL ~SPWI412~ #3 ~WIZARD~ (3)
     WRITE_SHORT 0x24 36
     WRITE_SHORT 0x26 36
-    WRITE_BYTE 0x3ee 7
-    WRITE_BYTE 0x3f0 7
-    WRITE_BYTE 0x3fe 7
-    WRITE_BYTE 0x400 7
-    WRITE_BYTE 0x40e 7
-    WRITE_BYTE 0x410 7
-    WRITE_BYTE 0x41e 5
-    WRITE_BYTE 0x420 5
+    // Locate wizard slots by type and level: spell-list edits relocate this table.
+    READ_LONG 0x2a8 c0_mem_info
+    READ_LONG 0x2ac c0_mem_count
+    FOR (c0_mem_row = 0; c0_mem_row < c0_mem_count; ++c0_mem_row) BEGIN
+      SET c0_mem_entry = c0_mem_info + 0x10 * c0_mem_row
+      READ_SHORT c0_mem_entry c0_spell_level
+      READ_SHORT (c0_mem_entry + 6) c0_spell_type
+      PATCH_IF (c0_spell_type = 1 AND c0_spell_level < 4) BEGIN
+        SET c0_spell_slots = 7
+        PATCH_IF (c0_spell_level = 3) BEGIN SET c0_spell_slots = 5 END
+        WRITE_SHORT (c0_mem_entry + 2) c0_spell_slots
+        WRITE_SHORT (c0_mem_entry + 4) c0_spell_slots
+      END
+    END
     WRITE_BYTE 0x235 1
     WRITE_BYTE 0x67 0
     WRITE_BYTE 0x69 0
     WRITE_BYTE 0x6a 0
 		BUT_ONLY
+END
 
+ACTION_IF FILE_EXISTS_IN_GAME ~nalia18.cre~ THEN BEGIN
     COPY_EXISTING ~nalia18.cre~ ~override~
     LPF DELETE_EFFECT INT_VAR match_opcode = 233 END
 		SET_BG2_PROFICIENCY 91 1
@@ -1237,14 +1248,20 @@ ACTION_IF FILE_EXISTS_IN_GAME ~nalia8.cre~ THEN BEGIN
     WRITE_BYTE 0x56 11
     WRITE_BYTE 0x57 13
     WRITE_BYTE 0x58 10
-    WRITE_BYTE 0x3ee 7
-    WRITE_BYTE 0x3f0 7
-    WRITE_BYTE 0x3fe 7
-    WRITE_BYTE 0x400 7
-    WRITE_BYTE 0x40e 7
-    WRITE_BYTE 0x410 7
-    WRITE_BYTE 0x41e 5
-    WRITE_BYTE 0x420 5
+    // Locate wizard slots by type and level: spell-list edits relocate this table.
+    READ_LONG 0x2a8 c0_mem_info
+    READ_LONG 0x2ac c0_mem_count
+    FOR (c0_mem_row = 0; c0_mem_row < c0_mem_count; ++c0_mem_row) BEGIN
+      SET c0_mem_entry = c0_mem_info + 0x10 * c0_mem_row
+      READ_SHORT c0_mem_entry c0_spell_level
+      READ_SHORT (c0_mem_entry + 6) c0_spell_type
+      PATCH_IF (c0_spell_type = 1 AND c0_spell_level < 4) BEGIN
+        SET c0_spell_slots = 7
+        PATCH_IF (c0_spell_level = 3) BEGIN SET c0_spell_slots = 5 END
+        WRITE_SHORT (c0_mem_entry + 2) c0_spell_slots
+        WRITE_SHORT (c0_mem_entry + 4) c0_spell_slots
+      END
+    END
     WRITE_BYTE 0x234 9
     WRITE_BYTE 0x235 1
     WRITE_BYTE 0x67 0

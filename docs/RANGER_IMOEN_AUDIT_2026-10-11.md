@@ -30,3 +30,9 @@ Changes affect newly installed resources; they are not a save-game hotfix. Earli
 Additional WeiDU fixtures execute the production Stalker CLAB/HPCLASS/Valygar blocks and all 25 relevant NPC header writes, checking the exact resulting bytes and preservation of neighboring data. Existing ranger/Imoen tests continue to run.
 
 The reported Stalker slowdown is not established by this audit: the shipped movement effects specify a 130% multiplier. Nalia's hard-coded spell-memorization offsets and variant guards remain candidates for a separate compatibility audit; they are not changed in this pass. Initial ranger +4 HP, failed-snare resting and the earlier unresolved runtime reports still require game evidence.
+## Further follow-up: Nalia spell slots and optional NPC variants
+
+- Nalia's sorcerer conversion wrote slot counts to fixed offsets `0x3ee`–`0x420`, although the preceding spell edits rebuild the CRE's variable-length sections. It now reads the memorization table offset/count from the header and matches wizard type and spell level. The intended slot counts (7/7/7/5) are unchanged; both 16-bit counts are written completely. Other levels and spell types are preserved.
+- Nalia18 and O#Xan25 now have their own presence checks. The absence of a paired resource no longer aborts installation or suppresses a present variant. Xan's fighter/mage class guard is preserved.
+- `tests/nalia_xan_regressions.py` executes both production conversion blocks with WeiDU on synthetic CREs, including relocated/reversed memorization tables, both embedded effect formats, nonzero high bytes, individually absent variants and no variants. It checks known/memorized spell contents, slot counts, unrelated effects and Xan's class guard.
+- This is installation-level validation. In-game sorcerer spellcasting and the previously unresolved ranger initial HP/rest reports still require a real installation/save.
