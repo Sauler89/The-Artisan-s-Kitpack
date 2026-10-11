@@ -19,3 +19,14 @@ python3 tests/ranger_imoen_regressions.py /absolute/path/to/weidu
 ```
 
 Changes affect newly installed resources; they are not a save-game hotfix. Earlier audit fixes remain on the separate draft branch and are not included here.
+
+## Follow-up: Stalker and NPC resource writes
+
+- **Stalker inherited abilities:** remove the complete `AP_C0RNG00` and `GA_C0CL922` entries before installing Stalker replacements. The former expression targeted an unused resource name; the latter left a malformed `GA_****` token. The Stalker's own passive bonuses and unrestricted Tracking remain, while the inherited Woodland Stride is removed as its description specifies.
+- **Stalker d8 HP table:** locate the STALKER row by its label instead of requiring one exact number of spaces. Other HPCLASS rows are preserved.
+- **Valygar variants:** the level-9/11/12/14 branches all copied `valyg8.cre`. Each now patches its corresponding resource; existing HP constants are unchanged. Tests include a partial installation containing `valyg9.cre` but no `valyg8.cre`.
+- **NPC binary field widths:** use one byte for Class (`0x273`), two bytes for current/max HP (`0x24`/`0x26`) and four bytes for XP (`0x18`). Nine class writes previously also cleared the adjacent Specific field. Ten HP writes and two XP writes left high bytes unchanged, potentially producing wrong values on modified resources.
+
+Additional WeiDU fixtures execute the production Stalker CLAB/HPCLASS/Valygar blocks and all 25 relevant NPC header writes, checking the exact resulting bytes and preservation of neighboring data. Existing ranger/Imoen tests continue to run.
+
+The reported Stalker slowdown is not established by this audit: the shipped movement effects specify a 130% multiplier. Nalia's hard-coded spell-memorization offsets and variant guards remain candidates for a separate compatibility audit; they are not changed in this pass. Initial ranger +4 HP, failed-snare resting and the earlier unresolved runtime reports still require game evidence.

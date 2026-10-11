@@ -6,8 +6,8 @@ COPY_EXISTING ~CLABRN01.2DA~ ~OVERRIDE/CLABRN03.2DA~
 	REPLACE_TEXTUALLY ~AP_C0RNH[%0-9%][%0-9%] ~ ~**** ~ // TOUGHNESS
 	// REPLACE_TEXTUALLY ~GA_SPCL311~ ~**** ~ // CHARM ANIMAL
 	// REPLACE_TEXTUALLY ~GA_SPCL412~ ~**** ~ // SET SNARE
-	REPLACE_TEXTUALLY ~C0RNG00A ~ ~**** ~ // CAMOUFLAGE
-	REPLACE_TEXTUALLY ~C0CL922 ~ ~**** ~ // TRACKING
+	REPLACE_TEXTUALLY ~AP_C0RNG00\b~ ~****~ // replace inherited Woodland Stride/Camouflage
+	REPLACE_TEXTUALLY ~GA_C0CL922\b~ ~****~ // replaced by unrestricted Stalker Tracking
 
 	LPF set_clab_2da_entries INT_VAR f_MinLevel = 1 STR_VAR f_Entry = AP_C0STK00 END
 	LPF set_clab_2da_entries INT_VAR f_MinLevel = 5 STR_VAR f_Entry = AP_C0STK00 END
@@ -131,7 +131,14 @@ WRITE_SHORT 0X1C 2
 
 // STALKER - HIT DIE
 COPY_EXISTING ~hpclass.2da~ OVERRIDE
-REPLACE_TEXTUALLY CASE_INSENSITIVE ~STALKER              HPWAR~ ~STALKER              HPARCH~
+  COUNT_2DA_ROWS 2 c0_hp_rows
+  FOR (c0_hp_row = 0; c0_hp_row < c0_hp_rows; ++c0_hp_row) BEGIN
+    READ_2DA_ENTRY c0_hp_row 0 2 c0_hp_class
+    PATCH_IF (~%c0_hp_class%~ STRING_EQUAL_CASE ~STALKER~) BEGIN
+      SET_2DA_ENTRY c0_hp_row 1 2 ~HPARCH~
+    END
+  END
+BUT_ONLY
 
 // STALKER - HLA
   COPY_EXISTING ~luabbr.2da~ ~override~
@@ -158,25 +165,25 @@ ACTION_IF FILE_EXISTS_IN_GAME ~valyg8.cre~ THEN BEGIN
 END
 
 ACTION_IF FILE_EXISTS_IN_GAME ~valyg9.cre~ THEN BEGIN
-    COPY_EXISTING ~valyg8.cre~ ~override~
+    COPY_EXISTING ~valyg9.cre~ ~override~
 	WRITE_SHORT 0x24 72
 	WRITE_SHORT 0x26 72
 END
 
 ACTION_IF FILE_EXISTS_IN_GAME ~valyg11.cre~ THEN BEGIN
-    COPY_EXISTING ~valyg8.cre~ ~override~
+    COPY_EXISTING ~valyg11.cre~ ~override~
 	WRITE_SHORT 0x24 80
 	WRITE_SHORT 0x26 80
 END
 
 ACTION_IF FILE_EXISTS_IN_GAME ~valyg12.cre~ THEN BEGIN
-    COPY_EXISTING ~valyg8.cre~ ~override~
+    COPY_EXISTING ~valyg12.cre~ ~override~
 	WRITE_SHORT 0x24 92
 	WRITE_SHORT 0x26 92
 END
 
 ACTION_IF FILE_EXISTS_IN_GAME ~valyg14.cre~ THEN BEGIN
-    COPY_EXISTING ~valyg8.cre~ ~override~
+    COPY_EXISTING ~valyg14.cre~ ~override~
 	WRITE_SHORT 0x24 92
 	WRITE_SHORT 0x26 92
 END

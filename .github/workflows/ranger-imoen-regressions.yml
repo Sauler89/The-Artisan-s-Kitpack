@@ -24,7 +24,7 @@ jobs:
       - name: Check changed installer syntax
         shell: bash
         run: |
-          for source in ArtisansKitpack/lib/Ranger.tpa ArtisansKitpack/lib/ranger_trap_limits.tpa ArtisansKitpack_npc/ArtisansKitpack_npc.TP2; do
+          for source in ArtisansKitpack/lib/Ranger.tpa ArtisansKitpack/lib/ranger_trap_limits.tpa ArtisansKitpack/lib/stalker.tpa ArtisansKitpack_npc/ArtisansKitpack_npc.TP2; do
             kind=TPA
             [[ "$source" != *.TP2 ]] || kind=TP2
             "$WEIDU_BIN" --nogame --noautoupdate --parse-check "$kind" "$source" 2>&1 | tee "$RUNNER_TEMP/parse.log"
@@ -32,3 +32,5 @@ jobs:
           done
       - name: Execute production patches on synthetic resources
         run: python3 tests/ranger_imoen_regressions.py "$WEIDU_BIN"
+      - name: Execute Stalker and NPC field regression fixtures
+        run: python3 tests/stalker_npc_regressions.py "$WEIDU_BIN"
