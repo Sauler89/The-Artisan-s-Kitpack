@@ -1,0 +1,34 @@
+name: Ranger and Imoen regressions
+on:
+  push:
+    branches: [master, fix/ranger-imoen-2026-10]
+  pull_request:
+    branches: [master]
+permissions:
+  contents: read
+jobs:
+  weidu-fixtures:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get official WeiDU 251
+        shell: bash
+        run: |
+          curl --fail --location --retry 3 https://github.com/WeiDUorg/weidu/releases/download/v251.00/WeiDU-Linux-251.zip -o "$RUNNER_TEMP/weidu.zip"
+          echo "3e1a34ec5d6e934b1d4a34541a1312d0170b120c6efe903a732415acde3bd3c0  $RUNNER_TEMP/weidu.zip" | sha256sum --check
+          unzip -q "$RUNNER_TEMP/weidu.zip" -d "$RUNNER_TEMP/weidu"
+          binary=$(find "$RUNNER_TEMP/weidu" -type f -name weidu -print -quit)
+          test -n "$binary"
+          chmod +x "$binary"
+          echo "WEIDU_BIN=$binary" >> "$GITHUB_ENV"
+      - name: Check changed installer syntax
+        shell: bash
+        run: |
+          for source in ArtisansKitpack/lib/Ranger.tpa ArtisansKitpack/lib/ranger_trap_limits.tpa ArtisansKitpack_npc/ArtisansKitpack_npc.TP2; do
+            kind=TPA
+            [[ "$source" != *.TP2 ]] || kind=TP2
+            "$WEIDU_BIN" --nogame --noautoupdate --parse-check "$kind" "$source" 2>&1 | tee "$RUNNER_TEMP/parse.log"
+            grep -F "File [$source] was successfully parsed as type [$kind]" "$RUNNER_TEMP/parse.log"
+          done
+      - name: Execute production patches on synthetic resources
+        run: python3 tests/ranger_imoen_regressions.py "$WEIDU_BIN"

@@ -1,0 +1,31 @@
+// Patch exact rows independently: a pre-existing RANGER (or CLERIC_RANGER)
+// must not suppress every addition. A zero cap rejects even the first snare.
+DEFINE_ACTION_FUNCTION c0_ensure_ranger_trap_limit
+  STR_VAR c0_trap_name = ~~
+BEGIN
+  COPY_EXISTING ~TRAPLIMT.2DA~ ~override~
+    COUNT_2DA_ROWS 2 c0_trap_rows
+    SET c0_trap_found = 0
+    FOR (c0_trap_row = 0; c0_trap_row < c0_trap_rows; ++c0_trap_row) BEGIN
+      READ_2DA_ENTRY c0_trap_row 0 2 c0_trap_label
+      PATCH_IF (~%c0_trap_label%~ STRING_EQUAL_CASE ~%c0_trap_name%~) BEGIN
+        SET c0_trap_found = 1
+        READ_2DA_ENTRY c0_trap_row 1 2 c0_trap_limit
+        PATCH_IF (IS_AN_INT ~%c0_trap_limit%~) BEGIN
+          PATCH_IF (c0_trap_limit = 0) BEGIN
+            SET_2DA_ENTRY c0_trap_row 1 2 ~3~
+          END
+        END ELSE BEGIN
+          SET_2DA_ENTRY c0_trap_row 1 2 ~3~
+        END
+      END
+    END
+    PATCH_IF (NOT c0_trap_found) BEGIN
+      INSERT_2DA_ROW c0_trap_rows 2 ~%c0_trap_name% 3~
+    END
+  BUT_ONLY
+END
+
+ACTION_FOR_EACH c0_trap_name IN RANGER CLERIC_RANGER FERALAN STALKER BEASTMASTER BEGIN
+  LAF c0_ensure_ranger_trap_limit STR_VAR c0_trap_name END
+END

@@ -26,7 +26,7 @@ COPY_EXISTING ~CLABRN01.2DA~ OVERRIDE
   LPF set_clab_2da_entries INT_VAR f_MinLevel = 17  STR_VAR f_Entry = AP_C0RNH17 END
   LPF set_clab_2da_entries INT_VAR f_MinLevel = 18  STR_VAR f_Entry = AP_C0RNH18 END
   LPF set_clab_2da_entries INT_VAR f_MinLevel = 19  STR_VAR f_Entry = AP_C0RNH19 END
-  LPF set_clab_2da_entries INT_VAR f_MinLevel = 10  STR_VAR f_Entry = AP_C0RNH20 END
+  LPF set_clab_2da_entries INT_VAR f_MinLevel = 20  STR_VAR f_Entry = AP_C0RNH20 END
   LPF set_clab_2da_entries INT_VAR f_MinLevel = 21  STR_VAR f_Entry = AP_C0RNH21 END
   LPF set_clab_2da_entries INT_VAR f_MinLevel = 22  STR_VAR f_Entry = AP_C0RNH22 END
   LPF set_clab_2da_entries INT_VAR f_MinLevel = 23  STR_VAR f_Entry = AP_C0RNH23 END
@@ -36,7 +36,7 @@ COPY_EXISTING ~CLABRN01.2DA~ OVERRIDE
   LPF set_clab_2da_entries INT_VAR f_MinLevel = 27  STR_VAR f_Entry = AP_C0RNH27 END
   LPF set_clab_2da_entries INT_VAR f_MinLevel = 28  STR_VAR f_Entry = AP_C0RNH28 END
   LPF set_clab_2da_entries INT_VAR f_MinLevel = 29  STR_VAR f_Entry = AP_C0RNH29 END
-  LPF set_clab_2da_entries INT_VAR f_MinLevel = 20  STR_VAR f_Entry = AP_C0RNH30 END
+  LPF set_clab_2da_entries INT_VAR f_MinLevel = 30  STR_VAR f_Entry = AP_C0RNH30 END
   LPF set_clab_2da_entries INT_VAR f_MinLevel = 31  STR_VAR f_Entry = AP_C0RNH31 END
   LPF set_clab_2da_entries INT_VAR f_MinLevel = 32  STR_VAR f_Entry = AP_C0RNH32 END
   LPF set_clab_2da_entries INT_VAR f_MinLevel = 33  STR_VAR f_Entry = AP_C0RNH33 END
@@ -124,10 +124,7 @@ END
 
 LAF cd_new_portrait_icon INT_VAR string = RESOLVE_STR_REF(~Woodland Stride~) STR_VAR bam_file = C0RNG00I RET C0RNG00I = icon END
 
-APPEND ~TRAPLIMT.2DA~ ~RANGER 3
-FERALAN 3
-STALKER 3
-BEASTMASTER 3~ UNLESS ~RANGER~
+INCLUDE ~%MOD_FOLDER%/lib/ranger_trap_limits.tpa~
 
 // RANGER - HLA
 COPY_EXISTING ~LURA0.2DA~ ~OVERRIDE~
@@ -206,7 +203,7 @@ COPY_EXISTING ~KITLIST.2DA~ ~override~
   LPF set_clab_2da_entries INT_VAR f_MinLevel = 17  STR_VAR f_Entry = AP_C0RNH17 END
   LPF set_clab_2da_entries INT_VAR f_MinLevel = 18  STR_VAR f_Entry = AP_C0RNH18 END
   LPF set_clab_2da_entries INT_VAR f_MinLevel = 19  STR_VAR f_Entry = AP_C0RNH19 END
-  LPF set_clab_2da_entries INT_VAR f_MinLevel = 10  STR_VAR f_Entry = AP_C0RNH20 END
+  LPF set_clab_2da_entries INT_VAR f_MinLevel = 20  STR_VAR f_Entry = AP_C0RNH20 END
   LPF set_clab_2da_entries INT_VAR f_MinLevel = 21  STR_VAR f_Entry = AP_C0RNH21 END
   LPF set_clab_2da_entries INT_VAR f_MinLevel = 22  STR_VAR f_Entry = AP_C0RNH22 END
   LPF set_clab_2da_entries INT_VAR f_MinLevel = 23  STR_VAR f_Entry = AP_C0RNH23 END
@@ -216,7 +213,7 @@ COPY_EXISTING ~KITLIST.2DA~ ~override~
   LPF set_clab_2da_entries INT_VAR f_MinLevel = 27  STR_VAR f_Entry = AP_C0RNH27 END
   LPF set_clab_2da_entries INT_VAR f_MinLevel = 28  STR_VAR f_Entry = AP_C0RNH28 END
   LPF set_clab_2da_entries INT_VAR f_MinLevel = 29  STR_VAR f_Entry = AP_C0RNH29 END
-  LPF set_clab_2da_entries INT_VAR f_MinLevel = 20  STR_VAR f_Entry = AP_C0RNH30 END
+  LPF set_clab_2da_entries INT_VAR f_MinLevel = 30  STR_VAR f_Entry = AP_C0RNH30 END
   LPF set_clab_2da_entries INT_VAR f_MinLevel = 31  STR_VAR f_Entry = AP_C0RNH31 END
   LPF set_clab_2da_entries INT_VAR f_MinLevel = 32  STR_VAR f_Entry = AP_C0RNH32 END
   LPF set_clab_2da_entries INT_VAR f_MinLevel = 33  STR_VAR f_Entry = AP_C0RNH33 END
@@ -384,6 +381,7 @@ COPY_EXISTING ~KITLIST.2DA~ ~override~
     PATCH_IF (%kit_class% = 12 || %kit_class% = 18) BEGIN
     
       INNER_ACTION BEGIN
+        LAF c0_ensure_ranger_trap_limit STR_VAR c0_trap_name = EVAL ~%kit_label%~ END
         // This gives Ranger kits the Thief snare at the same frequency Thieves get them.
         COPY_EXISTING ~%kit_clab%.2DA~ override
         LPF set_clab_2da_entries INT_VAR f_MinLevel = 1 f_MaxLevel = 20 STR_VAR f_Entry = GA_C0CL922 END // Tracking
