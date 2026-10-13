@@ -1,0 +1,34 @@
+name: Kit regression audit
+on:
+  push:
+    branches: ["fix/kitpack-regression-audit-2026-10"]
+  pull_request:
+    branches: [master]
+permissions:
+  contents: read
+jobs:
+  source-and-weidu:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Source and binary invariants
+        run: python3 -m unittest discover -s tests -v
+      - name: Get official WeiDU 251
+        shell: bash
+        run: |
+          curl --fail --location --retry 3 https://github.com/WeiDUorg/weidu/releases/download/v251.00/WeiDU-Linux-251.zip -o "$RUNNER_TEMP/weidu.zip"
+          echo "3e1a34ec5d6e934b1d4a34541a1312d0170b120c6efe903a732415acde3bd3c0  $RUNNER_TEMP/weidu.zip" | sha256sum --check
+          unzip -q "$RUNNER_TEMP/weidu.zip" -d "$RUNNER_TEMP/weidu"
+          binary=$(find "$RUNNER_TEMP/weidu" -type f -name weidu -print -quit)
+          test -n "$binary"
+          chmod +x "$binary"
+          echo "WEIDU_BIN=$binary" >> "$GITHUB_ENV"
+      - name: Parse changed installers and helpers
+        shell: bash
+        run: |
+          for source in ArtisansKitpack/lib/{EnlightenedFist,Shapeshifter,dwarvendefender,Martyr,martyr_visibility,MonkRevision,dark_moon_lineage,Eldritch_Knight,profs_eeex_patch}.tpa ArtisansKitpack/eeex/profs_eeex.tpa; do
+            "$WEIDU_BIN" --nogame --noautoupdate --parse-check TPA "$source" 2>&1 | tee "$RUNNER_TEMP/parse-check.log"
+            grep -F "File [$source] was successfully parsed as type [TPA]" "$RUNNER_TEMP/parse-check.log"
+          done
+      - name: Execute patches on synthetic resources
+        run: python3 tests/run_weidu_regressions.py "$WEIDU_BIN"

@@ -228,6 +228,8 @@ Disadvantages:
     kit_id
 END
 
+INCLUDE ~%MOD_FOLDER%/lib/martyr_visibility.tpa~
+
 DEFINE_ACTION_FUNCTION cd_new_portrait_icon
   INT_VAR string = 0
   STR_VAR bam_file = "****"

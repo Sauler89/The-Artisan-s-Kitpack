@@ -131,7 +131,7 @@ Disadvantages:
 	
     // clswpbon      = ~1 0 2~
 	
-    // hpclass       = ~HPROG~
+    hpclass       = ~HPROG~ // d6 hit die, matching the Enlightened Fist's intended progression
 	
     numwslot      = ~3~
 	

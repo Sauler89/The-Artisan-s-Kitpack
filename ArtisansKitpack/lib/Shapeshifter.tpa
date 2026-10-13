@@ -2,6 +2,9 @@
 COPY ~%MOD_FOLDER%/Druid/Shapeshifter/2DAs~ ~OVERRIDE~
 COPY ~%MOD_FOLDER%/Druid/Shapeshifter/SPELLS~ ~OVERRIDE~
 
+// C0SS-W.ITM already references C0SS-WS/C0SS-WD in this baseline.
+// Keep the binary regression check: upstream PR #25 is historical here.
+
 COPY_EXISTING ~CLABDR01.2DA~ ~OVERRIDE/CLABDR03.2DA~
   REPLACE_TEXTUALLY ~GA_SPCL107~ ~**** ~
   REPLACE_TEXTUALLY ~GA_SPCL101~ ~**** ~
